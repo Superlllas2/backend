@@ -31,7 +31,6 @@ export const getQuestions = async (req, res) => {
                 max_completion_tokens: 1500,
                 temperature: 1,
                 frequency_penalty: 0.2,
-                presence_penalty: 0.1,
                 top_p: topPValue,
             },
             {
