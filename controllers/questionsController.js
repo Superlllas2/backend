@@ -28,10 +28,8 @@ export const getQuestions = async (req, res) => {
                         content: `Generate ${numberOfQuestions} questions about ${topics}.\nUse difficulty ${difficulty}.\nReturn format MUST be:\n[\n  {\n    "question": "text",\n    "options": ["opt1", "opt2", "opt3", "opt4"],\n    "answer_index": 2\n  }\n]\nNo markdown, no commentary.`
                     }
                 ],
-                max_completion_tokens: 1500,
-                temperature: 1,
-                frequency_penalty: 0.2,
-                top_p: topPValue,
+                verbosity: "low",           // concise output
+                max_output_tokens: 1200     // replaces max_tokens
             },
             {
                 headers: {
