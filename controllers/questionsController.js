@@ -11,21 +11,21 @@ export const getQuestions = async (req, res) => {
         Immortal: 1.0
     };
 
-    const topPValue = difficultySettings[difficulty];
+    const topPValue = difficultySettings[difficulty] ?? 0.6;
 
     try {
         const response = await axios.post(
             'https://api.openai.com/v1/chat/completions',
             {
-                model: "gpt-4o-mini",
+                model: "gpt-5-mini",
                 messages: [
                     {
                         role: "system",
-                        content: "You are a helpful assistant that generates unique difficult to answer multiple-choice questions."
+                        content: "You must output ONLY valid JSON. No prose or explanations."
                     },
                     {
                         role: "user",
-                        content: `Generate ${numberOfQuestions} unique multiple-choice questions about the following topics: ${topics}. Difficulty level should be ${difficulty}, where friendly is all-around general knowledge, easy is commonly known information, intermediate requires topic familiarity, hard demands specialized knowledge, and immortal questions involve expert-level or rare details. Format each question strictly as: { "question": "text", "options": ["opt1", "opt2", "opt3", "opt4"], "answer_index": 2 }`
+                        content: `Generate ${numberOfQuestions} questions about ${topics}.\nUse difficulty ${difficulty}.\nReturn format MUST be:\n[\n  {\n    "question": "text",\n    "options": ["opt1", "opt2", "opt3", "opt4"],\n    "answer_index": 2\n  }\n]\nNo markdown, no commentary.`
                     }
                 ],
                 max_tokens: 1000,
@@ -41,30 +41,42 @@ export const getQuestions = async (req, res) => {
             }
         );
 
-        // Clean and parse the response
-        const rawContent = response.data.choices[0].message.content;
-        console.log("OpenAI Raw Content:", rawContent); // Log the response for debugging
+        const raw = response.data.choices[0].message.content;
+        console.log("RAW OPENAI OUTPUT:", raw);
 
-        // Use a regular expression to extract each JSON object individually
-        const jsonObjects = rawContent.match(/\{.*?}/g) || []; // Matches each JSON object or returns an empty array if none
-
-        // Filter and parse each JSON object
-        const generatedQuestions = jsonObjects.reduce((questions, obj) => {
-            try {
-                questions.push(JSON.parse(obj));
-            } catch (e) {
-                console.error("Error parsing question object:", obj, e.message);
-            }
-            return questions;
-        }, []);
-
-        if (generatedQuestions.length === 0) {
-            new Error("No valid questions could be parsed.");
+        let questions;
+        try {
+            questions = JSON.parse(raw);
+        } catch (e) {
+            console.error("Failed to parse OpenAI response:", raw);
+            return res.status(502).json({ error: "Invalid format from OpenAI" });
         }
 
-        res.json(generatedQuestions);
+        const isValid = Array.isArray(questions) && questions.every((q) => {
+            return (
+                q && typeof q === 'object' &&
+                typeof q.question === 'string' &&
+                Array.isArray(q.options) &&
+                q.options.length === 4 &&
+                q.options.every((opt) => typeof opt === 'string') &&
+                Number.isInteger(q.answer_index) &&
+                q.answer_index >= 0 &&
+                q.answer_index <= 3
+            );
+        });
+
+        if (!isValid) {
+            console.error("Invalid data from OpenAI:", questions);
+            return res.status(502).json({ error: "Invalid format from OpenAI" });
+        }
+
+        res.json(questions);
     } catch (error) {
-        console.error("Error fetching questions:", error.response ? error.response.data : error.message);
+        if (error.response) {
+            console.error("Error fetching questions:", error.response.status, error.response.data);
+        } else {
+            console.error("Error fetching questions:", error.message);
+        }
         res.status(500).json({ error: 'Failed to fetch questions' });
     }
 };
