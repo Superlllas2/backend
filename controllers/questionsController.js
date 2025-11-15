@@ -17,7 +17,7 @@ export const getQuestions = async (req, res) => {
         const response = await axios.post(
             'https://api.openai.com/v1/chat/completions',
             {
-                model: "gpt-4o-mini",
+                model: "gpt-5-nano-2025-08-07",
                 messages: [
                     {
                         role: "system",
@@ -28,7 +28,7 @@ export const getQuestions = async (req, res) => {
                         content: `Generate ${numberOfQuestions} unique multiple-choice questions about the following topics: ${topics}. Difficulty level should be ${difficulty}, where friendly is all-around general knowledge, easy is commonly known information, intermediate requires topic familiarity, hard demands specialized knowledge, and immortal questions involve expert-level or rare details. Format each question strictly as: { "question": "text", "options": ["opt1", "opt2", "opt3", "opt4"], "answer_index": 2 }`
                     }
                 ],
-                max_tokens: 1000,
+                max_tokens: 1500,
                 temperature: 1,
                 frequency_penalty: 0.2,
                 presence_penalty: 0.1,
