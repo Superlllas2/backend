@@ -1,7 +1,9 @@
 import express from 'express';
 import path from 'path'; // Import path to serve static files properly
-// import cors from 'cors';
+import cors from 'cors';
 import dotenv from 'dotenv';
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 import connectDB from './db.js';
 import questionsRoute from './routes/questionsRoute.js';
 import userRoutes from './routes/userRoutes.js';
@@ -14,47 +16,24 @@ dotenv.config({ path: './.env' });
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+const corsOptions = {
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST'],
+    credentials: true,
+};
+
 // Connect to MongoDB
 connectDB()
     .then(() => console.log('MongoDB connection successful'))
     .catch((error) => console.error('MongoDB connection failed:', error));
 
-if (process.env.MODE === 'development') {
-    // app.use(cors()); // Allow all origins in development
-    // console.log("CORS is in dev mode");
-} else if (process.env.MODE === 'production') {
-    // app.use(cors({ origin: 'https://questnest-fd5edf2051c1.herokuapp.com' }));
-    // console.log("CORS is in production mode");
-}
-
-// app.use(
-//     cors({
-//         origin: true, // Allow all origins
-//         credentials: true,
-//     })
-// );
-// app.options("*", cors());
-
-// app.use((req, res, next) => {
-//     res.header("Access-Control-Allow-Origin", "*")
-//     res.header(
-//         "Access-Control-Allow-Headers",
-//         "Origin, X-Requested, Content-Type, Accept Authorization"
-//     )
-//     if (req.method === "OPTIONS") {
-//         res.header(
-//             "Access-Control-Allow-Methods",
-//             "POST, PUT, PATCH, GET, DELETE"
-//         )
-//         return res.status(200).json({})
-//     }
-//     next()
-// })
+app.use(cors(corsOptions));
 
 app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    res.header('Access-Control-Allow-Origin', corsOptions.origin);
+    res.header('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS,POST,PUT');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
     next();
 });
 
@@ -78,6 +57,24 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html')); // Adjust 'public/index.html' as needed
 });
 
-app.listen(PORT, () => {
+const server = createServer(app);
+
+const io = new SocketIOServer(server, {
+    cors: corsOptions,
+});
+
+io.on('connection', (socket) => {
+    console.log('Client connected:', socket.id);
+
+    socket.on('chat:message', (payload) => {
+        io.emit('chat:message', payload);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('Client disconnected:', socket.id);
+    });
+});
+
+server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
