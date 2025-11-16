@@ -11,11 +11,18 @@ import {
 
 const router = express.Router();
 
+// router.get('/leaderboard', getLeaderboard);
+// router.post('/results', authenticateToken, createResult);
+// router.get('/results', authenticateToken, listResults);
+// router.get('/results/:id', authenticateToken, getResultById);
+// router.put('/results/:id', authenticateToken, updateResult);
+// router.delete('/results/:id', authenticateToken, deleteResult);
+
 router.get('/leaderboard', getLeaderboard);
-router.post('/results', authenticateToken, createResult);
-router.get('/results', authenticateToken, listResults);
-router.get('/results/:id', authenticateToken, getResultById);
-router.put('/results/:id', authenticateToken, updateResult);
-router.delete('/results/:id', authenticateToken, deleteResult);
+router.post('/results', createResult);
+router.get('/results', listResults);
+router.get('/results/:id', getResultById);
+router.put('/results/:id', updateResult);
+router.delete('/results/:id', deleteResult);
 
 export default router;
