@@ -15,7 +15,7 @@ dotenv.config({ path: './.env' });
 
 const app = express();
 const PORT = process.env.PORT || 5001;
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'https://questnest-fd5edf2051c1.herokuapp.com'];
 
 const corsOptions = {
     origin: allowedOrigins,
