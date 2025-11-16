@@ -15,10 +15,10 @@ dotenv.config({ path: './.env' });
 
 const app = express();
 const PORT = process.env.PORT || 5001;
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
 
 const corsOptions = {
-    origin: 'http://localhost:5173',
-    methods: ['GET', 'POST'],
+    origin: allowedOrigins,
     credentials: true,
 };
 
@@ -28,14 +28,6 @@ connectDB()
     .catch((error) => console.error('MongoDB connection failed:', error));
 
 app.use(cors(corsOptions));
-
-app.use(function(req, res, next) {
-    res.header('Access-Control-Allow-Origin', corsOptions.origin);
-    res.header('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS,POST,PUT');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    next();
-});
 
 // Middleware to parse JSON
 app.use(express.json());
