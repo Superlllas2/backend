@@ -6,6 +6,8 @@ import connectDB from './db.js';
 import questionsRoute from './routes/questionsRoute.js';
 import userRoutes from './routes/userRoutes.js';
 import protectedRoute from './routes/protectedRoute.js';
+import quizResultRoutes from './routes/quizResultRoutes.js';
+import gameSessionRoutes from './routes/gameSessionRoutes.js';
 
 dotenv.config({ path: './.env' });
 
@@ -62,6 +64,8 @@ app.use(express.json());
 // Define routes
 app.use('/api/questions', questionsRoute);
 app.use('/api/auth', userRoutes);
+app.use('/api', quizResultRoutes);
+app.use('/api', gameSessionRoutes);
 app.use('/api', protectedRoute);
 app.use('/api/protected', protectedRoute);
 
